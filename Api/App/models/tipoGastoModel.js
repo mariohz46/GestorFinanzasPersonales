@@ -9,5 +9,7 @@ const TipoGasto = sequelize.define('tiposdegastos',{
     },
     nombreCategoria:{
         type:DataTypes.STRING(30)
-    }
+    },
+    tableName:'tiposdegastos',
+    timestamps:false
 });

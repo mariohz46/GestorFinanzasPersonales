@@ -5,5 +5,9 @@ const App=express();
 
 App.use(express.json());
 App.use(express.urlencoded({extended: false}));
+App.use(require('../App/routes/ingresosRoutes'));
+
+
+
 
 module.exports=App;

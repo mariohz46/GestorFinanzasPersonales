@@ -14,13 +14,13 @@ const GastosV = sequelize.define('gastosvariables',{
         type:DataTypes.INTEGER,
         allowNull: false,
     },
-    totalGastosV:{
+    TotalGastosV:{
         type:DataTypes.INTEGER
     },
     idTipoGasto:{
         type:DataTypes.INTEGER,
         references:{
-            model:TipoGastoModel,
+            model:tipoGastoModel,
             key:'idCategoriaGasto'
         }
     },
@@ -28,6 +28,6 @@ const GastosV = sequelize.define('gastosvariables',{
     timestamps:false
 });
 
-GastosV.belongsTo(TipoGastoModel,{foreignKey:'idCategoriaGasto'})
+GastosV.belongsTo(tipoGastoModel,{foreignKey:'idCategoriaGasto'})
 
 module.exports=GastosV;
