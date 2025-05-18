@@ -1,15 +1,16 @@
-use gestorfinanzaspersonales;
- 
-CREATE TABLE `TiposDeIngresos` (
+CREATE DATABASE gestorFinanzasPersonales;
+use gestorFinanzasPersonales;
+
+CREATE TABLE `CategoriaIngresos` (
   `idCategoriaIngreso` INT NOT NULL AUTO_INCREMENT,
   `nombreCategoria` varchar(30),
-  primary key(`idCategoriaIngreso`)
+  PRIMARY KEY(`idCategoriaIngreso`)
 );
 
-CREATE TABLE `TiposDeGastos` (
+CREATE TABLE `CategoriaGastos` (
   `idCategoriaGasto` INT NOT NULL AUTO_INCREMENT,
   `nombreCategoria` varchar(30),
-  primary key(`idCategoriaGasto`)
+  PRIMARY KEY(`idCategoriaGasto`)
 );
 
 CREATE TABLE `Ingresos` (
@@ -17,28 +18,9 @@ CREATE TABLE `Ingresos` (
   `descripcion` varchar(100),
   `fecha` date,
   `monto` int,
-  `totalIngresos` int,
-  `idTipoIngreso` int,
-  primary key(`idIngreso`)
-);
-
-CREATE TABLE `FechasDePago` (
-  `idFechaDePago` INT NOT NULL AUTO_INCREMENT,
-  `descripcion` varchar(50),
-  `fecha` date,
-  `idGastoF` int,
-  `idGastoV` int,
-  primary key(`idFechaDePago`)
-);
-
-CREATE TABLE `RegistroGastos` (
-  `idRegistroGasto` INT NOT NULL AUTO_INCREMENT,
-  `fecha` date,
-  `totalGastos` int,
-  `idGastoV` int,
-  `idGastoF` int,
-  `idCategoriaGasto` int,
-  primary key(`idRegistroGasto`)
+  `idCategoriaIngreso` int,
+  PRIMARY KEY(`idIngreso`),
+  FOREIGN KEY (`idCategoriaIngreso`) REFERENCES `CategoriaIngresos` (`idCategoriaIngreso`)
 );
 
 CREATE TABLE `Ahorros` (
@@ -46,25 +28,41 @@ CREATE TABLE `Ahorros` (
   `descripcion` varchar(50),
   `monto` int,
   `idIngreso` int,
-  primary key(`idAhorro`)
+  PRIMARY KEY(`idAhorro`),
+  FOREIGN KEY (`idIngreso`) REFERENCES `Ingresos` (`idIngreso`)
 );
 
 CREATE TABLE `GastosVariables` (
   `idGastoV` INT NOT NULL AUTO_INCREMENT,
   `nombre` varchar(60),
   `monto` int,
-  `idTipoGasto` int,
-  `TotalGastosV` int,
-  primary key(`idGastoV`)
+  `idCategoriaGasto` int,
+  PRIMARY KEY(`idGastoV`),
+  FOREIGN KEY (`idCategoriaGasto`) REFERENCES `CategoriaGastos` (`idCategoriaGasto`)
 );
 
 CREATE TABLE `GastosFijos` (
   `idGastoF` INT NOT NULL AUTO_INCREMENT,
   `nombre` varchar(60),
   `monto` int,
-  `idTipoGasto` int,
-  `TotalGastosF` int,
-  primary key(`idGastoF`)
+  `idCategoriaGasto` int,
+  PRIMARY KEY(`idGastoF`),
+  FOREIGN KEY (`idCategoriaGasto`) REFERENCES `CategoriaGastos` (`idCategoriaGasto`)
+);
+
+CREATE TABLE `RegistroGastos` (
+  `idRegistroGasto` INT NOT NULL AUTO_INCREMENT,
+  `fecha` date,
+  `idCategoriaGasto` int,
+  PRIMARY KEY(`idRegistroGasto`),
+  FOREIGN KEY (`idCategoriaGasto`) REFERENCES `CategoriaGastos` (`idCategoriaGasto`)
+);
+
+CREATE TABLE `FechasDePago` (
+  `idFechaDePago` INT NOT NULL AUTO_INCREMENT,
+  `descripcion` varchar(50),
+  `fecha` date,
+  PRIMARY KEY(`idFechaDePago`)
 );
 
 CREATE TABLE `Presupuestos` (
@@ -73,100 +71,71 @@ CREATE TABLE `Presupuestos` (
   `fechaInicio` date,
   `fechaFinal` date,
   `totalPresupuesto` int,
-  `idGastosF` int,
-  `idGastosV` int,
-  `idIngresos` int,
-  primary key(`idPresupuesto`)
+  PRIMARY KEY(`idPresupuesto`)
 );
 
-ALTER TABLE `Ingresos` ADD FOREIGN KEY (`idIngreso`) REFERENCES `TiposDeIngresos` (`idCategoriaIngreso`);
-
-ALTER TABLE `RegistroGastos` ADD FOREIGN KEY (`idRegistroGasto`) REFERENCES `TiposDeGastos` (`idCategoriaGasto`);
+/* Tablas puente (many-to-many) */
 
 CREATE TABLE `GastosVariables_RegistroGastos` (
-  `GastosVariables_idGastoV` INT,
-  `RegistroGastos_idRegistroGasto` INT,
-  PRIMARY KEY (`GastosVariables_idGastoV`, `RegistroGastos_idRegistroGasto`)
+  `idGastoV` INT,
+  `idRegistroGasto` INT,
+  PRIMARY KEY (`idGastoV`, `idRegistroGasto`), /*Llave primaria compuesta*/
+  FOREIGN KEY (`idGastoV`) REFERENCES `GastosVariables` (`idGastoV`),
+  FOREIGN KEY (`idRegistroGasto`) REFERENCES `RegistroGastos` (`idRegistroGasto`)
 );
-
-ALTER TABLE `GastosVariables_RegistroGastos` ADD FOREIGN KEY (`GastosVariables_idGastoV`) REFERENCES `GastosVariables` (`idGastoV`);
-
-ALTER TABLE `GastosVariables_RegistroGastos` ADD FOREIGN KEY (`RegistroGastos_idRegistroGasto`) REFERENCES `RegistroGastos` (`idRegistroGasto`);
-
 
 CREATE TABLE `GastosFijos_RegistroGastos` (
-  `GastosFijos_idGastoF` INT,
-  `RegistroGastos_idRegistroGasto` INT,
-  PRIMARY KEY (`GastosFijos_idGastoF`, `RegistroGastos_idRegistroGasto`)
+  `idGastoF` INT,
+  `idRegistroGasto` INT,
+  PRIMARY KEY (`idGastoF`, `idRegistroGasto`), /*Llave primaria compuesta*/
+  FOREIGN KEY (`idGastoF`) REFERENCES `GastosFijos` (`idGastoF`),
+  FOREIGN KEY (`idRegistroGasto`) REFERENCES `RegistroGastos` (`idRegistroGasto`)
 );
-
-ALTER TABLE `GastosFijos_RegistroGastos` ADD FOREIGN KEY (`GastosFijos_idGastoF`) REFERENCES `db`.`GastosFijos` (`idGastoF`);
-
-ALTER TABLE `GastosFijos_RegistroGastos` ADD FOREIGN KEY (`RegistroGastos_idRegistroGasto`) REFERENCES `RegistroGastos` (`idRegistroGasto`);
-
 
 CREATE TABLE `Ingresos_Ahorros` (
-  `Ingresos_idIngreso` INT,
-  `Ahorros_idAhorro` INT,
-  PRIMARY KEY (`Ingresos_idIngreso`, `Ahorros_idAhorro`)
+  `idIngreso` INT,
+  `idAhorro` INT,
+  PRIMARY KEY (`idIngreso`, `idAhorro`),
+  FOREIGN KEY (`idIngreso`) REFERENCES `Ingresos` (`idIngreso`),
+  FOREIGN KEY (`idAhorro`) REFERENCES `Ahorros` (`idAhorro`)
 );
-
-ALTER TABLE `Ingresos_Ahorros` ADD FOREIGN KEY (`Ingresos_idIngreso`) REFERENCES `Ingresos` (`idIngreso`);
-
-ALTER TABLE `Ingresos_Ahorros` ADD FOREIGN KEY (`Ahorros_idAhorro`) REFERENCES `Ahorros` (`idAhorro`);
-
 
 CREATE TABLE `GastosVariables_FechasDePago` (
-  `GastosVariables_idGastoV` INT,
-  `FechasDePago_idFechaDePago` INT,
-  PRIMARY KEY (`GastosVariables_idGastoV`, `FechasDePago_idFechaDePago`)
+  `idGastoV` INT,
+  `idFechaDePago` INT,
+  PRIMARY KEY (`idGastoV`, `idFechaDePago`),
+  FOREIGN KEY (`idGastoV`) REFERENCES `GastosVariables` (`idGastoV`),
+  FOREIGN KEY (`idFechaDePago`) REFERENCES `FechasDePago` (`idFechaDePago`)
 );
-
-ALTER TABLE `GastosVariables_FechasDePago` ADD FOREIGN KEY (`GastosVariables_idGastoV`) REFERENCES `GastosVariables` (`idGastoV`);
-
-ALTER TABLE `GastosVariables_FechasDePago` ADD FOREIGN KEY (`FechasDePago_idFechaDePago`) REFERENCES `FechasDePago` (`idFechaDePago`);
-
 
 CREATE TABLE `GastosFijos_FechasDePago` (
-  `GastosFijos_idGastoF` INT,
-  `FechasDePago_idFechaDePago` INT,
-  PRIMARY KEY (`GastosFijos_idGastoF`, `FechasDePago_idFechaDePago`)
+  `idGastoF` INT,
+  `idFechaDePago` INT,
+  PRIMARY KEY (`idGastoF`, `idFechaDePago`),
+  FOREIGN KEY (`idGastoF`) REFERENCES `GastosFijos` (`idGastoF`),
+  FOREIGN KEY (`idFechaDePago`) REFERENCES `FechasDePago` (`idFechaDePago`)
 );
-
-ALTER TABLE `GastosFijos_FechasDePago` ADD FOREIGN KEY (`GastosFijos_idGastoF`) REFERENCES `GastosFijos` (`idGastoF`);
-
-ALTER TABLE `GastosFijos_FechasDePago` ADD FOREIGN KEY (`FechasDePago_idFechaDePago`) REFERENCES `FechasDePago` (`idFechaDePago`);
-
 
 CREATE TABLE `GastosFijos_Presupuestos` (
-  `GastosFijos_idGastoF` INT,
-  `Presupuestos_idPresupuesto` INT,
-  PRIMARY KEY (`GastosFijos_idGastoF`, `Presupuestos_idPresupuesto`)
+  `idGastoF` INT,
+  `idPresupuesto` INT,
+  PRIMARY KEY (`idGastoF`, `idPresupuesto`),
+  FOREIGN KEY (`idGastoF`) REFERENCES `GastosFijos` (`idGastoF`),
+  FOREIGN KEY (`idPresupuesto`) REFERENCES `Presupuestos` (`idPresupuesto`)
 );
-
-ALTER TABLE `GastosFijos_Presupuestos` ADD FOREIGN KEY (`GastosFijos_idGastoF`) REFERENCES `GastosFijos` (`idGastoF`);
-
-ALTER TABLE `GastosFijos_Presupuestos` ADD FOREIGN KEY (`Presupuestos_idPresupuesto`) REFERENCES `Presupuestos` (`idPresupuesto`);
-
 
 CREATE TABLE `GastosVariables_Presupuestos` (
-  `GastosVariables_idGastoV` INT,
-  `Presupuestos_idPresupuesto` INT,
-  PRIMARY KEY (`GastosVariables_idGastoV`, `Presupuestos_idPresupuesto`)
+  `idGastoV` INT,
+  `idPresupuesto` INT,
+  PRIMARY KEY (`idGastoV`, `idPresupuesto`),
+  FOREIGN KEY (`idGastoV`) REFERENCES `GastosVariables` (`idGastoV`),
+  FOREIGN KEY (`idPresupuesto`) REFERENCES `Presupuestos` (`idPresupuesto`)
 );
-
-ALTER TABLE `GastosVariables_Presupuestos` ADD FOREIGN KEY (`GastosVariables_idGastoV`) REFERENCES `GastosVariables` (`idGastoV`);
-
-ALTER TABLE `GastosVariables_Presupuestos` ADD FOREIGN KEY (`Presupuestos_idPresupuesto`) REFERENCES `Presupuestos` (`idPresupuesto`);
-
 
 CREATE TABLE `Ingresos_Presupuestos` (
-  `Ingresos_idIngreso` INT,
-  `Presupuestos_idPresupuesto` INT,
-  PRIMARY KEY (`Ingresos_idIngreso`, `Presupuestos_idPresupuesto`)
+  `idIngreso` INT,
+  `idPresupuesto` INT,
+  PRIMARY KEY (`idIngreso`, `idPresupuesto`),
+  FOREIGN KEY (`idIngreso`) REFERENCES `Ingresos` (`idIngreso`),
+  FOREIGN KEY (`idPresupuesto`) REFERENCES `Presupuestos` (`idPresupuesto`)
 );
-
-ALTER TABLE `Ingresos_Presupuestos` ADD FOREIGN KEY (`Ingresos_idIngreso`) REFERENCES `Ingresos` (`idIngreso`);
-
-ALTER TABLE `Ingresos_Presupuestos` ADD FOREIGN KEY (`Presupuestos_idPresupuesto`) REFERENCES `Presupuestos` (`idPresupuesto`);
-
